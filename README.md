@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DTU RM — Student Recruitment & Selection Portal
 
-## Getting Started
+A lightweight student data processing and recruitment management portal for DTU's Recruitment Manager workflow.
 
-First, run the development server:
+The application is designed around a simple data pipeline:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+CSV Dataset → Parsing → Data Cleaning → Cleaned Dataset → Shortlisting → Eligibility Filtering → Export
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The goal is to provide a clean interface for taking raw student records, cleaning and validating them, applying recruitment criteria, reviewing eligible candidates, and exporting the final shortlist.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Table of Contents
 
-## Learn More
+- [Overview](#overview)
+- [Core Workflow](#core-workflow)
+- [Pipeline Architecture](#pipeline-architecture)
+- [1. Dataset Input](#1-dataset-input)
+- [2. CSV Parsing](#2-csv-parsing)
+- [3. Data Cleaning](#3-data-cleaning)
+- [4. Cleaned Student Records](#4-cleaned-student-records)
+- [5. Shortlisting](#5-shortlisting)
+- [Minimum Total Score](#minimum-total-score)
+- [Eligibility Logic](#eligibility-logic)
+- [Average Score](#average-score)
+- [Search and Filters](#search-and-filters)
+- [Debarring Students](#debaring-students)
+- [6. Export](#6-export)
+- [Application Structure](#application-structure)
+- [Technology Stack](#technology-stack)
+- [Running Locally](#running-locally)
+- [Production Build](#production-build)
+- [Development Principles](#development-principles)
+- [Current Scope](#current-scope)
+- [Future Improvements](#future-improvements)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Overview
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+DTU RM is a student selection and recruitment data portal.
 
-## Deploy on Vercel
+The application is intended to replace a manual workflow in which student data has to be inspected, cleaned, filtered, and shortlisted manually.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Instead, the portal provides a structured pipeline:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+                    RAW CSV
+                       │
+                       ▼
+                ┌─────────────┐
+                │ CSV Parser  │
+                └──────┬──────┘
+                       │
+                       ▼
+                ┌─────────────┐
+                │   Cleaning  │
+                │   Pipeline  │
+                └──────┬──────┘
+                       │
+                       ▼
+              CLEANED STUDENT DATA
+                       │
+                       ▼
+                ┌─────────────┐
+                │  Shortlist  │
+                └──────┬──────┘
+                       │
+            ┌──────────┼──────────┐
+            ▼          ▼          ▼
+         Search     Filters    Min Score
+            │          │          │
+            └──────────┼──────────┘
+                       ▼
+                 ELIGIBLE SET
+                       │
+             ┌─────────┴─────────┐
+             ▼                   ▼
+          Review               Export
